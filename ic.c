@@ -68,6 +68,7 @@ void error(char *buf) {
     exit(1);
 }
 
+// TODO LIBIFDB prefix 
 void ic_debug(int level) {
     debug = level;
 }
