@@ -3,6 +3,14 @@
  * Developer: Nigel Griffiths.
  * (C) Copyright 2021 Nigel Griffiths
  */
+#ifndef __LIBIFDB_H__
+#define __LIBIFDB_H__
+
+#include "utils.h"
+
+// main libinfluxdb macro
+#define __LIBIFDB__
+
 void ic_influx_database(char *host, long port, char *db);
 void ic_influx_userpw(char *user, char *pw);
 void ic_tags(char *tags);
@@ -19,3 +27,5 @@ void ic_string(char *name, char *value);
 
 void ic_push();
 void ic_debug(int level);
+
+#endif

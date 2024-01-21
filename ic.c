@@ -18,6 +18,8 @@
 
     Compile: cc ic.c -g -O3 -o ic
  */
+#include "libinfluxdb/ic.h"
+#include "libinfluxdb/utils.h"
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <math.h>
@@ -70,7 +72,7 @@ void error(char *buf) {
     exit(1);
 }
 
-// TODO LIBIFDB prefix 
+// TODO LIBIFDB prefix
 void ic_debug(int level) {
     debug = level;
 }
@@ -186,23 +188,28 @@ int create_socket() /* returns 1 for error and 0 for ok */
     return 1;
 }
 
-void ic_check(long adding) /* Check the buffer space */
-{
-    if (output == (char *)0) { /* First time create the buffer *
-if( (output = (char *)malloc(MEGABYTE)) == (char *)-1)
-error("failed to malloc() output buffer");
-}
-if(output_char + (2*adding) > output_size) /* When near the end of the output
-buffer, extend it*/
-        if ((output = (char *)realloc(output, output_size + MEGABYTE)) ==
-            (char *)-1)
+/* check buffer space */
+void ic_check(long adding) {
+    /* first time create the buffer */
+    if (output == (char *)0) { 
+        /*
+        if( (output = (char *)malloc(MEGABYTE)) == (char *)-1) {
+            error("failed to malloc() output buffer");
+        }
+        // when near the end of the output
+        if(output_char + (2*adding) > output_size) {
+            buffer, extend it
+        }*/
+        if ((output = (char *)realloc(output, output_size + MEGABYTE)) == (char *)-1) {
             error("failed to realloc() output buffer");
+        }
     }
 }
 
 void remove_ending_comma_if_any() {
     if (output[output_char - 1] == ',') {
-        output[output_char - 1] = 0; /* remove the char */
+        /* remove the char */
+        output[output_char - 1] = 0;
         output_char--;
     }
 }
@@ -305,7 +312,8 @@ void ic_string(char *name, char *value) {
 
     ic_check(strlen(name) + strlen(value) + 4);
     len = strlen(value);
-    for (i = 0; i < len; i++) /* replace problem characters and with a space */
+    /* replace problem characters and with a space */
+    for (i = 0; i < len; i++)
         if (value[i] == '\n' || iscntrl(value[i]))
             value[i] = ' ';
     output_char += sprintf(&output[output_char], "%s=\"%s\",", name, value);
@@ -326,8 +334,11 @@ void ic_push() {
     int sent;
     int code;
 
-    if (output_char == 0) /* nothing to send so skip this operation */
+    /* nothing to send so skip this operation */
+    if (output_char == 0) {
         return;
+    }
+
     if (influx_port) {
         DEBUG fprintf(stderr, "ic_push() size=%ld\n", output_char);
         if (create_socket() == 1) {
@@ -374,8 +385,10 @@ void ic_push() {
                 }
                 sent = sent + ret;
             }
-            for (i = 0; i < 1024; i++) /* empty the buffer */
+            /* empty buffer */
+            for (i = 0; i < 1024; i++) {
                 result[i] = 0;
+            }
             if ((ret = read(sockfd, result, sizeof(result))) > 0) {
                 result[ret] = 0;
                 DEBUG fprintf(stderr,

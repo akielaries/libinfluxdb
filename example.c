@@ -1,8 +1,7 @@
+#include "libinfluxdb/ic.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "ic.h"
 
 int main(int argc, char **argv) {
     int count;
@@ -18,8 +17,10 @@ int main(int argc, char **argv) {
 
     ic_debug(1); /* maximum output */
 
-    ic_influx_database("silver2", 8086, "ic");
-    ic_influx_userpw("nigel", "secret");
+    // hostname, port, database. TODO, create database if it DNE
+    ic_influx_database("localhost", 8086, "LIBIFDB_TEST");
+    // blank for testing
+    ic_influx_userpw("", "");
 
     /* Intitalise */
 
