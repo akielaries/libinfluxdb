@@ -11,9 +11,28 @@
 // main libinfluxdb macro
 #define __LIBIFDB__
 
+typedef struct InfluxInfo {
+    char influx_hostname[1024 + 1];
+    char influx_ip[16 + 1];
+    long influx_port;
+    char influx_database[256 + 1];
+    char influx_username[64 + 1];
+    char influx_password[64 + 1];
+    char *influx_tags;
+} InfluxInfo;
+
+typedef struct InfluxOutput {
+    char *output;
+    long output_size;
+    long output_char;
+    char saved_section[64];
+    char saved_sub[64];
+} InfluxOutput;
+
+
 void ic_influx_database(char *host, long port, char *db);
 void ic_influx_userpw(char *user, char *pw);
-void ic_tags(char *tags);
+void ic_tags(char *tags, InfluxInfo *info);
 
 void ic_measure(char *section);
 void ic_measureend();

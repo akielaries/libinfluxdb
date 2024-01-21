@@ -1,4 +1,4 @@
-#include "libinfluxdb/ic.h"
+#include "libinfluxdb/libifdb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -8,6 +8,7 @@ int main(int argc, char **argv) {
     int i = 10;
     char buf[300 + 1];
     char myhostname[256 + 1];
+    struct InfluxInfo ifdb_info;
 
 /* RANGE uses to generate some random numbers between the min and max inclusive
  */
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
         error("gethostname() failed");
     }
     snprintf(buf, 300, "host=%s", myhostname);
-    ic_tags(buf);
+    ic_tags(buf, &ifdb_info);
 
     /* Main capture loop - often data capture agents run until they are killed
      * or the server reboots */

@@ -18,7 +18,7 @@
 
     Compile: cc ic.c -g -O3 -o ic
  */
-#include "libinfluxdb/ic.h"
+#include "libinfluxdb/libifdb.h"
 #include "libinfluxdb/utils.h"
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -38,28 +38,27 @@
 /* 0=off, 1=on basic, 2=trace like output */
 int debug = 0;
 
-/* details of the influxdb server or telegraf */
 char influx_hostname[1024 + 1] = {0};
 char influx_ip[16 + 1] = {0};
 long influx_port = 0;
 
-char influx_database[256 + 1]; /* the influxdb database  */
-char influx_username[64 + 1];  /* optional for influxdb access */
-char influx_password[64 + 1];  /* optional for influxdb access */
+char influx_database[256 + 1];
+char influx_username[64 + 1];
+char influx_password[64 + 1];
 
-char *output; /* all the stats must fit in this buffer */
+char *output;
 long output_size = 0;
 long output_char = 0;
 
-char *influx_tags; /* saved tags for every influxdb line protocol mesurement */
+char *influx_tags;
 
-int subended = 0; /* stop ic_subend and ic_measureend both enig the measure */
-int first_sub =
-    0; /* need to remove the ic_measure measure before adding ic_sub measure */
+int subended = 0;
+int first_sub = 0;
+
 char saved_section[64];
 char saved_sub[64];
 
-int sockfd; /* file desciptor for socket connection */
+int sockfd;
 
 void error(char *buf) {
     fprintf(stderr,
@@ -82,14 +81,21 @@ void ic_debug(int level) {
  * sending the data */
 /* complex: "host=lpar42,serialnum=987654,arch=power9" note:the comma separated
  * list */
-void ic_tags(char *t) {
-    DEBUG fprintf(stderr, "ic_tags(%s)\n", t);
-    if (influx_tags == (char *)0) {
-        if ((influx_tags = (char *)malloc(MEGABYTE)) == (char *)-1)
-            error("failed to malloc() tags buffer");
+void ic_tags(char *t, InfluxInfo *info) {
+    fprintf(stderr, "ic_tags(%s)\n", t);
+    size_t length = strlen(t);
+
+    influx_tags = (char *)malloc(length + 1); // +1 for the null terminator
+
+    if (influx_tags == NULL) {
+        error("failed to malloc() tags buffer");
     }
 
-    strncpy(influx_tags, t, 256);
+    strncpy(influx_tags, t, length);
+
+    // null-terminate the influx_tags string
+    influx_tags[length] = '\0';
+    
 }
 
 void ic_influx_database(
