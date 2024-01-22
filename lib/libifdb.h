@@ -29,15 +29,14 @@ typedef struct InfluxOutput {
     char saved_sub[64];
 } InfluxOutput;
 
-
-void ic_influx_database(char *host, long port, char *db);
+void ic_influx_database(char *host, long port, char *db, InfluxInfo *info);
 void ic_influx_userpw(char *user, char *pw);
 void ic_tags(char *tags, InfluxInfo *info);
 
-void ic_measure(char *section);
+void ic_measure(char *section, InfluxInfo *info);
 void ic_measureend();
 
-void ic_sub(char *sub_name);
+void ic_sub(char *sub_name, InfluxInfo *info);
 void ic_subend();
 
 void ic_long(char *name, long long value);
