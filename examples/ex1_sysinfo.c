@@ -1,4 +1,4 @@
-#include "libinfluxdb/libifdb.h"
+#include "../lib/libifdb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

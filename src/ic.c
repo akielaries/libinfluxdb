@@ -1,25 +1,5 @@
-/*
- * Influx C (ic) client for data capture
- * Developer: Nigel Griffiths.
- * (C) Copyright 2021 Nigel Griffiths
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the gnu general public license as published by
-    the free software foundation, either version 3 of the license, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but without any warranty; without even the implied warranty of
-    merchantability or fitness for a particular purpose.  see the
-    gnu general public license for more details.
-
-    You should have received a copy of the gnu general public license
-    along with this program.  if not, see <http://www.gnu.org/licenses/>.
-
-    Compile: cc ic.c -g -O3 -o ic
- */
-#include "libinfluxdb/libifdb.h"
-#include "libinfluxdb/utils.h"
+#include "../lib/libifdb.h"
+#include "../lib/utils.h"
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <math.h>
@@ -98,11 +78,11 @@ void ic_tags(char *t, InfluxInfo *info) {
     
 }
 
+/* converts influxdb hostname to IPv4 addr */
 void ic_influx_database(
     char *host,
     long port,
-    char *db) /* note: converts influxdb hostname to ip address */
-{
+    char *db) {
     struct hostent *he;
     char errorbuf[1024 + 1];
 
