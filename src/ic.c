@@ -1,5 +1,6 @@
 #include "../lib/libifdb.h"
 #include "../lib/utils.h"
+#include <stdint.h>
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <math.h>
@@ -54,11 +55,6 @@ void ic_tags(char *t, InfluxInfo *info) {
     fprintf(stderr, "ic_tags(%s)\n", t);
     size_t length = strlen(t);
 
-    //influx_tags = (char *)malloc(length + 1); // +1 for the null terminator
-
-//    if (influx_tags == NULL) {
-//        error("failed to malloc() tags buffer");
-//    }
     if (info->influx_tags == NULL) {
         info->influx_tags = (char *)malloc(length + 1);
         if (info->influx_tags == NULL) {
@@ -73,9 +69,28 @@ void ic_tags(char *t, InfluxInfo *info) {
 }
 
 /* converts influxdb hostname to IPv4 addr */
-void ic_influx_database(char *host, long port, char *db, InfluxInfo *info) {
+//void ifdb_init(char *host, long port, char *db, InfluxInfo *info) {
+// returns populated InfluxInfo struct
+InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
+                     char *user, char *pass, char *tags) {
+
     struct hostent *he;
     char errorbuf[1024 + 1];
+
+    InfluxInfo *info = (InfluxInfo *)malloc(sizeof(InfluxInfo));
+
+    if (info == NULL) {
+        fprintf(stderr, "Failed to allocate memory for InfluxInfo struct\n");
+        exit(EXIT_FAILURE);
+    }
+
+    info->influx_hostname = (char *)malloc(strlen(host));
+    info->influx_port = port;
+    info->influx_database = (char *)malloc(strlen(db));
+    info->influx_username = (char *)malloc(strlen(user));
+    info->influx_password = (char *)malloc(strlen(pass));
+    info->influx_tags = (char *)malloc(strlen(pass));
+
 
     influx_port = port;
     strncpy(influx_database, db, 256);
@@ -126,6 +141,9 @@ void ic_influx_database(char *host, long port, char *db, InfluxInfo *info) {
                    host); /* perhaps the hostname is actually an ip address */
         }
     }
+
+    // return populated InfluxInfo struct pointer
+    return info;
 }
 
 void ic_influx_userpw(char *user, char *pw) {
@@ -134,8 +152,7 @@ void ic_influx_userpw(char *user, char *pw) {
     strncpy(influx_password, pw, 64);
 }
 
-int create_socket() /* returns 1 for error and 0 for ok */
-{
+int create_socket() {
     int i;
     static char buffer[4096];
     static struct sockaddr_in serv_addr;
@@ -159,6 +176,8 @@ int create_socket() /* returns 1 for error and 0 for ok */
         fprintf(stderr, " connect() call failed errno=%d", errno);
         return 0;
     }
+    // TODO populate socket in a struct to use accross the functions that need 
+    // it OR return the socket and pass by parameter
     return 1;
 }
 
@@ -166,14 +185,6 @@ int create_socket() /* returns 1 for error and 0 for ok */
 void ic_check(long adding) {
     /* first time create the buffer */
     if (output == (char *)0) {
-        /*
-        if( (output = (char *)malloc(MEGABYTE)) == (char *)-1) {
-            error("failed to malloc() output buffer");
-        }
-        // when near the end of the output
-        if(output_char + (2*adding) > output_size) {
-            buffer, extend it
-        }*/
         if ((output = (char *)realloc(output, output_size + MEGABYTE)) ==
             (char *)-1) {
             error("failed to realloc() output buffer");

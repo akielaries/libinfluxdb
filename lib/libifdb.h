@@ -7,17 +7,18 @@
 #define __LIBIFDB_H__
 
 #include "utils.h"
+#include <stdint.h>
 
 // main libinfluxdb macro
 #define __LIBIFDB__
 
 typedef struct InfluxInfo {
-    char influx_hostname[1024 + 1];
-    char influx_ip[16 + 1];
-    long influx_port;
-    char influx_database[256 + 1];
-    char influx_username[64 + 1];
-    char influx_password[64 + 1];
+    char *influx_hostname;
+    char *influx_ip;
+    uint32_t influx_port;
+    char *influx_database;
+    char *influx_username;
+    char *influx_password;
     char *influx_tags;
 } InfluxInfo;
 
@@ -29,7 +30,9 @@ typedef struct InfluxOutput {
     char saved_sub[64];
 } InfluxOutput;
 
-void ic_influx_database(char *host, long port, char *db, InfluxInfo *info);
+//void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
+InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
+                     char *user, char *pass, char *tags);
 void ic_influx_userpw(char *user, char *pw);
 void ic_tags(char *tags, InfluxInfo *info);
 

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdint.h>
 
 int main(int argc, char **argv) {
     int count;
@@ -27,7 +28,7 @@ int main(int argc, char **argv) {
     //  char influx_password[64 + 1];
     //  char *influx_tags;
     // } InfluxInfo;
-    struct InfluxInfo ifdb_info;
+    struct InfluxInfo *ifdb_info;
 
     //ifdb_info.influx_hostname = "localhost";
     //ifdb_info.influx_port = 8086;
@@ -35,11 +36,19 @@ int main(int argc, char **argv) {
     //ifdb_info.influx_username = "";
     //ifdb_info.influx_password = "";
     //ifdb_info.influx_tags = "host=friedicecream";
+    char *hostname = "localhost";
+    uint32_t port  = 8096;
+    char *database = "LIBIFDG_TEST";
+    char *user     = "";
+    char *pass     = "";
+    char *tags     = "host=friedicecream";  // TODO: make tags optional
 
 
     // hostname, port, database. TODO, create database if it DNE
     // FIXME : ifdb_init
-    ic_influx_database("localhost", 8086, "LIBIFDB_TEST", &ifdb_info);
+    // TODO : ifdb_init should return a populate InfluxInfo struct pointer
+    //ifdb_init("localhost", 8086, "LIBIFDB_TEST");
+    ifdb_info = ifdb_init(hostname, port, database, user, pass, tags);
     // blank for testing
     // FIXME : ifdb_login
     ic_influx_userpw("", "");
@@ -50,20 +59,21 @@ int main(int argc, char **argv) {
     if (gethostname(myhostname, sizeof(myhostname)) == -1) {
         error("gethostname() failed");
     }
-    snprintf(buf, 300, "host=%s", myhostname);
+    
+    //snprintf(buf, 300, "host=%s", myhostname);
     // FIXME : ifdb_tag
-    ic_tags(buf, &ifdb_info);
+    //ic_tags(buf, &ifdb_info);
 
     /* Main capture loop - often data capture agents run until they are killed
      * or the server reboots */
-
+    
     for (count = 0; count < 4; count++) {
 
         /* Simple Measure */
 
         // FIXME : ifdb_table_open
         // TODO: make measurement/table name a parameter somewhere!!
-        ic_measure("cpu", &ifdb_info);
+        /*ic_measure("cpu", &ifdb_info);
         // FIXME : ifdb_write_int
         ic_long("user", RANGE(20, 70));
         // FIXME : ifdb_write_double
@@ -76,7 +86,6 @@ int main(int argc, char **argv) {
         // FIXME : ifdb_table_close
         ic_measureend();
 
-        /* Measure with a single subsection - could be more */
 
         ic_measure("disks", &ifdb_info);
         for (i = 0; i < 3; i++) {
@@ -90,13 +99,12 @@ int main(int argc, char **argv) {
         }
         ic_measureend();
 
-        /* Send all data in one packet to InfluxDB */
-
         ic_push();
-
+        */
         /* Wait until we need to capture the data again */
 
         sleep(5); /* Typically, this would be 60 seconds */
     }
+    // probably 
     exit(0);
 }
