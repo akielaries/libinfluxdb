@@ -68,12 +68,8 @@ void ic_tags(char *t, InfluxInfo *info) {
     info->influx_tags[length] = '\0';
 }
 
-// returns populated InfluxInfo struct
-InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
-                     char *user, char *pass, char *tags) {
-
-    struct hostent *he;
-    char errorbuf[1024 + 1];
+InfluxInfo* ifdb_alloc(char *host, uint32_t port, char *db,
+                       char *user, char *pass, char *tags) {
 
     // TODO created utility function for allocating memory?
     InfluxInfo *info = (InfluxInfo *)malloc(sizeof(InfluxInfo));
@@ -81,102 +77,100 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
     if (info == NULL) {
         fprintf(stderr, "Failed to allocate memory for InfluxInfo struct\n");
         exit(EXIT_FAILURE);
-    }
+    }   
 
-    /*
-    info->influx_hostname = (char *)malloc(strlen(host) + 1);
+    // allocate memory for each struct member
+    info->influx_hostname = (char *)malloc(strlen(host) + 1); 
     info->influx_port = port;
-    info->influx_database = (char *)malloc(strlen(db) + 1);
-    info->influx_username = (char *)malloc(strlen(user) + 1);
-    info->influx_password = (char *)malloc(strlen(pass) + 1);
-    info->influx_tags = (char *)malloc(strlen(tags) + 1);
+    info->influx_database = (char *)malloc(strlen(db) + 1); 
+    info->influx_username = (char *)malloc(strlen(user) + 1); 
+    info->influx_password = (char *)malloc(strlen(pass) + 1); 
+    info->influx_tags = (char *)malloc(strlen(tags) + 1); 
     
+    // copy function parameters to InfluxInfo structure
     strncpy(info->influx_hostname, host, strlen(host));
     strncpy(info->influx_database, db, strlen(db));
     // TODO : account for some security here FIXME
     strncpy(info->influx_username, user, strlen(user));
     strncpy(info->influx_password, pass, strlen(pass));
     strncpy(info->influx_tags, tags, strlen(tags));
-    */
 
-    info->influx_hostname = strdup(host);
-    info->influx_port = port;
-    info->influx_database = strdup(db);
-    info->influx_username = strdup(user);
-    info->influx_password = strdup(pass);
-    info->influx_tags = strdup(tags);
-
-    // null termination
+    // ensure null termination of strings in our struct
     info->influx_hostname[strlen(host)] = '\0';
     info->influx_database[strlen(db)] = '\0';
     info->influx_username[strlen(user)] = '\0';
     info->influx_password[strlen(pass)] = '\0';
     info->influx_tags[strlen(tags)] = '\0';
 
-    if (host[0] <= '0' && host[0] <= '9') {
-        fprintf(stderr,
-                "ic_influx(ipaddr=%s,port=%ld,database=%s))\n",
-                host,
-                port,
-                db);
+    return info;
+}
+
+int ifdb_dealloc(InfluxInfo *info) {
+    if (info == NULL) {
+        fprintf(stderr, "InfluxInfo struct memory allready deallocated");
+    }
+    else {
+        // free all memory from the InfluxInfo struct
+        free(info->influx_hostname);
+        free(info->influx_database);
+        free(info->influx_username);
+        free(info->influx_password);
+        free(info->influx_tags);
+        free(info);
+    }
+}
+
+// returns populated InfluxInfo struct
+InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
+                     char *user, char *pass, char *tags) {
+
+    struct hostent *he;
+    char errorbuf[1024 + 1];
+    
+    // allocate memory for InfluxInfo struct
+    InfluxInfo *info = ifdb_alloc(host, port, db, user, pass, tags);
+
+    if (isdigit((unsigned char)host[0])) {
+        fprintf(stderr, "ic_influx(ipaddr=%s,port=%ld,database=%s)\n",
+                host, port, db);
         strncpy(info->influx_hostname, host, 16);
     } 
 
     else {
-        fprintf(stderr,
-                "ic_influx_by_hostname(host=%s,port=%ld,database=%s))\n",
-                host,
-                port,
-                db);
-        
-        strncpy(info->influx_hostname, host, strlen(host));
-        
-        if (isalpha(host[0])) {
+        fprintf(stderr, "ic_influx_by_hostname(host=%s,port=%ld,database=%s)\n",
+                host, port, db);
 
+        strncpy(info->influx_hostname, host, strlen(host));
+
+        if (isalpha((unsigned char)host[0])) {
             he = gethostbyname(host);
-        
+
             if (he == NULL) {
-                sprintf(errorbuf,
-                        "influx host=%s to ip address convertion failed "
-                        "gethostbyname(), bailing out\n",
-                        host);
-                error(errorbuf);
+                snprintf(errorbuf, sizeof(errorbuf),
+                         "influx host=%s to ip address conversion failed "
+                         "gethostbyname(), bailing out\n", host);
+                fprintf(stderr, "%s", errorbuf);
             }
-            
-            /* this could return multiple ip addresses but we assume its the
-             * first one */
+
             if (he->h_addr_list[0] != NULL) {
                 strcpy(info->influx_hostname,
                        inet_ntoa(*(struct in_addr *)(he->h_addr_list[0])));
-                fprintf(stderr,
-                        "ic_influx_by_hostname hostname=%s converted to "
-                        "ip address %s))\n",
-                        host,
-                        info->influx_hostname);
-            } 
-            else {
-                sprintf(errorbuf,
-                        "influx host=%s to ip address convertion failed (empty "
-                        "list), bailing out\n",
-                        host);
-                error(errorbuf);
+                fprintf(stderr, "ic_influx_by_hostname hostname=%s converted to "
+                                "ip address %s)\n", host, info->influx_hostname);
+            } else {
+                snprintf(errorbuf, sizeof(errorbuf),
+                         "influx host=%s to ip address conversion failed (empty "
+                         "list), bailing out\n", host);
+                fprintf(stderr, "%s", errorbuf);
             }
-        } 
-
-        else {
-            /* perhaps the hostname is actually an ip address */
+        } else {
+            // Perhaps the hostname is actually an IP address
             strcpy(info->influx_hostname, host);
         }
     }
 
     // return populated InfluxInfo struct pointer
     return info;
-}
-
-void ic_influx_userpw(char *user, char *pw) {
-    fprintf(stderr, "ic_influx_userpw(username=%s,pssword=%s))\n", user, pw);
-    //strncpy(influx_username, user, 64);
-    //strncpy(influx_password, pw, 64);
 }
 
 int create_socket(char *influx_ip, uint32_t influx_port) {
