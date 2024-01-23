@@ -77,6 +77,7 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
     struct hostent *he;
     char errorbuf[1024 + 1];
 
+    // TODO created utility function for allocating memory?
     InfluxInfo *info = (InfluxInfo *)malloc(sizeof(InfluxInfo));
 
     if (info == NULL) {
