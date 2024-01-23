@@ -33,20 +33,27 @@ typedef struct InfluxOutput {
 //void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
 InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
                      char *user, char *pass, char *tags);
+
 void ic_influx_userpw(char *user, char *pw);
+
 void ic_tags(char *tags, InfluxInfo *info);
 
 void ic_measure(char *section, InfluxInfo *info);
+
 void ic_measureend();
 
 void ic_sub(char *sub_name, InfluxInfo *info);
+
 void ic_subend();
 
 void ic_long(char *name, long long value);
+
 void ic_double(char *name, double value);
+
 void ic_string(char *name, char *value);
 
-void ic_push();
+void ic_push(InfluxInfo *info);
+
 void ic_debug(int level);
 
 #endif

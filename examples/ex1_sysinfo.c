@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
     //ifdb_info.influx_password = "";
     //ifdb_info.influx_tags = "host=friedicecream";
     char *hostname = "localhost";
-    uint32_t port  = 8096;
-    char *database = "LIBIFDG_TEST";
+    uint32_t port  = 8086;
+    char *database = "LIBIFDB_TEST";
     char *user     = "";
     char *pass     = "";
     char *tags     = "host=friedicecream";  // TODO: make tags optional
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     ifdb_info = ifdb_init(hostname, port, database, user, pass, tags);
     // blank for testing
     // FIXME : ifdb_login
-    ic_influx_userpw("", "");
+    //ic_influx_userpw("", "");
 
     /* Intitalise */
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
 
         // FIXME : ifdb_table_open
         // TODO: make measurement/table name a parameter somewhere!!
-        /*ic_measure("cpu", &ifdb_info);
+        ic_measure("cpu", ifdb_info);
         // FIXME : ifdb_write_int
         ic_long("user", RANGE(20, 70));
         // FIXME : ifdb_write_double
@@ -86,21 +86,24 @@ int main(int argc, char **argv) {
         // FIXME : ifdb_table_close
         ic_measureend();
 
+        /* Measure with a single subsection - could be more */
 
-        ic_measure("disks", &ifdb_info);
+        ic_measure("disks", ifdb_info);
         for (i = 0; i < 3; i++) {
             sprintf(buf, "sda%d", i);
             // FIXME : this and ic_subend are functions used for nested 
             // line inserts by the looks of it?
-            ic_sub(buf, &ifdb_info);
+            ic_sub(buf, ifdb_info);
             ic_long("reads", (long long)(i * RANGE(1, 30)));
             ic_double("writes", (double)(i * 3.142 * RANGE(1, 30)));
             ic_subend();
         }
         ic_measureend();
 
-        ic_push();
-        */
+        /* Send all data in one packet to InfluxDB */
+
+        ic_push(ifdb_info);
+
         /* Wait until we need to capture the data again */
 
         sleep(5); /* Typically, this would be 60 seconds */

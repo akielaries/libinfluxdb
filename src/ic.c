@@ -16,12 +16,12 @@
 #define MEGABYTE (1024 * 1024)
 
 char influx_hostname[1024 + 1] = {0};
-char influx_ip[16 + 1] = {0};
-long influx_port = 0;
+//char influx_ip[16 + 1] = {0};
+//long influx_port = 0;
 
-char influx_database[256 + 1];
-char influx_username[64 + 1];
-char influx_password[64 + 1];
+//char influx_database[256 + 1];
+//char influx_username[64 + 1];
+//char influx_password[64 + 1];
 
 char *output;
 long output_size = 0;
@@ -68,8 +68,6 @@ void ic_tags(char *t, InfluxInfo *info) {
     info->influx_tags[length] = '\0';
 }
 
-/* converts influxdb hostname to IPv4 addr */
-//void ifdb_init(char *host, long port, char *db, InfluxInfo *info) {
 // returns populated InfluxInfo struct
 InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
                      char *user, char *pass, char *tags) {
@@ -85,16 +83,35 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
         exit(EXIT_FAILURE);
     }
 
-    info->influx_hostname = (char *)malloc(strlen(host));
+    /*
+    info->influx_hostname = (char *)malloc(strlen(host) + 1);
     info->influx_port = port;
-    info->influx_database = (char *)malloc(strlen(db));
-    info->influx_username = (char *)malloc(strlen(user));
-    info->influx_password = (char *)malloc(strlen(pass));
-    info->influx_tags = (char *)malloc(strlen(pass));
+    info->influx_database = (char *)malloc(strlen(db) + 1);
+    info->influx_username = (char *)malloc(strlen(user) + 1);
+    info->influx_password = (char *)malloc(strlen(pass) + 1);
+    info->influx_tags = (char *)malloc(strlen(tags) + 1);
+    
+    strncpy(info->influx_hostname, host, strlen(host));
+    strncpy(info->influx_database, db, strlen(db));
+    // TODO : account for some security here FIXME
+    strncpy(info->influx_username, user, strlen(user));
+    strncpy(info->influx_password, pass, strlen(pass));
+    strncpy(info->influx_tags, tags, strlen(tags));
+    */
 
+    info->influx_hostname = strdup(host);
+    info->influx_port = port;
+    info->influx_database = strdup(db);
+    info->influx_username = strdup(user);
+    info->influx_password = strdup(pass);
+    info->influx_tags = strdup(tags);
 
-    influx_port = port;
-    strncpy(influx_database, db, 256);
+    // null termination
+    info->influx_hostname[strlen(host)] = '\0';
+    info->influx_database[strlen(db)] = '\0';
+    info->influx_username[strlen(user)] = '\0';
+    info->influx_password[strlen(pass)] = '\0';
+    info->influx_tags[strlen(tags)] = '\0';
 
     if (host[0] <= '0' && host[0] <= '9') {
         fprintf(stderr,
@@ -102,17 +119,22 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
                 host,
                 port,
                 db);
-        strncpy(influx_ip, host, 16);
-    } else {
+        strncpy(info->influx_hostname, host, 16);
+    } 
+
+    else {
         fprintf(stderr,
                 "ic_influx_by_hostname(host=%s,port=%ld,database=%s))\n",
                 host,
                 port,
                 db);
-        strncpy(influx_hostname, host, 1024);
+        
+        strncpy(info->influx_hostname, host, strlen(host));
+        
         if (isalpha(host[0])) {
 
             he = gethostbyname(host);
+        
             if (he == NULL) {
                 sprintf(errorbuf,
                         "influx host=%s to ip address convertion failed "
@@ -120,26 +142,30 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
                         host);
                 error(errorbuf);
             }
+            
             /* this could return multiple ip addresses but we assume its the
              * first one */
             if (he->h_addr_list[0] != NULL) {
-                strcpy(influx_ip,
+                strcpy(info->influx_hostname,
                        inet_ntoa(*(struct in_addr *)(he->h_addr_list[0])));
                 fprintf(stderr,
                         "ic_influx_by_hostname hostname=%s converted to "
                         "ip address %s))\n",
                         host,
-                        influx_ip);
-            } else {
+                        info->influx_hostname);
+            } 
+            else {
                 sprintf(errorbuf,
                         "influx host=%s to ip address convertion failed (empty "
                         "list), bailing out\n",
                         host);
                 error(errorbuf);
             }
-        } else {
-            strcpy(influx_ip,
-                   host); /* perhaps the hostname is actually an ip address */
+        } 
+
+        else {
+            /* perhaps the hostname is actually an ip address */
+            strcpy(info->influx_hostname, host);
         }
     }
 
@@ -149,14 +175,15 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
 
 void ic_influx_userpw(char *user, char *pw) {
     fprintf(stderr, "ic_influx_userpw(username=%s,pssword=%s))\n", user, pw);
-    strncpy(influx_username, user, 64);
-    strncpy(influx_password, pw, 64);
+    //strncpy(influx_username, user, 64);
+    //strncpy(influx_password, pw, 64);
 }
 
-int create_socket() {
+int create_socket(char *influx_ip, uint32_t influx_port) {
     int i;
     static char buffer[4096];
     static struct sockaddr_in serv_addr;
+    int socket_fd = 0;
 
     fprintf(stderr,
             "socket: trying to connect to \"%s\":%ld\n",
@@ -172,9 +199,9 @@ int create_socket() {
     serv_addr.sin_addr.s_addr = inet_addr(influx_ip);
     serv_addr.sin_port = htons(influx_port);
 
-    /* connect tot he socket offered by the web server */
+    /* connect to the socket offered by the web server */
     if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        fprintf(stderr, " connect() call failed errno=%d", errno);
+        fprintf(stderr, " connect() call failed errno=%d\n", errno);
         return 0;
     }
     // TODO populate socket in a struct to use accross the functions that need 
@@ -309,7 +336,7 @@ void ic_string(char *name, char *value) {
             output_char);
 }
 
-void ic_push() {
+void ic_push(InfluxInfo *info) {
     char header[1024];
     char result[1024];
     char buffer[1024 * 8];
@@ -324,29 +351,29 @@ void ic_push() {
         return;
     }
 
-    if (influx_port) {
+    if (info->influx_port) {
         fprintf(stderr, "ic_push() size=%ld\n", output_char);
-        if (create_socket() == 1) {
+        if (create_socket(info->influx_hostname, info->influx_port) == 1) {
 
             sprintf(buffer,
                     "POST /write?db=%s&u=%s&p=%s HTTP/1.1\r\nHost: "
                     "%s:%ld\r\nContent-Length: %ld\r\n\r\n",
-                    influx_database,
-                    influx_username,
-                    influx_password,
-                    influx_hostname,
-                    influx_port,
+                    info->influx_database,
+                    info->influx_username,
+                    info->influx_password,
+                    info->influx_hostname,
+                    info->influx_port,
                     output_char);
             fprintf(stderr,
                     "buffer size=%ld\nbuffer=<%s>\n",
                     strlen(buffer),
                     buffer);
-            if ((ret = write(sockfd, buffer, strlen(buffer))) !=
-                strlen(buffer)) {
+            if ((ret = write(sockfd, buffer, strlen(buffer))) != strlen(buffer)) {
                 fprintf(stderr,
                         "warning: \"write post to sockfd failed.\" errno=%d\n",
                         errno);
             }
+
             total = output_char;
             sent = 0;
 
@@ -360,10 +387,9 @@ void ic_push() {
                         sent,
                         total);
                 if (ret < 0) {
-                    fprintf(
-                        stderr,
-                        "warning: \"write body to sockfd failed.\" errno=%d\n",
-                        errno);
+                    fprintf(stderr,
+                            "warning: \"write body to sockfd failed.\" errno=%d\n",
+                            errno);
                     break;
                 }
                 sent = sent + ret;
@@ -393,11 +419,14 @@ void ic_push() {
             close(sockfd);
             sockfd = 0;
             fprintf(stderr, "ic_push complete\n");
-        } else {
+        } 
+        else {
             fprintf(stderr, "socket create failed\n");
         }
-    } else
+    } 
+    else {
         error("influx port is not set, bailing out");
+    }
 
     output[0] = 0;
     output_char = 0;
