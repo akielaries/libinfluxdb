@@ -15,14 +15,6 @@
 /* Used as the default buffer sizes */
 #define MEGABYTE (1024 * 1024)
 
-char influx_hostname[1024 + 1] = {0};
-//char influx_ip[16 + 1] = {0};
-//long influx_port = 0;
-
-//char influx_database[256 + 1];
-//char influx_username[64 + 1];
-//char influx_password[64 + 1];
-
 char *output;
 long output_size = 0;
 long output_char = 0;
@@ -204,20 +196,27 @@ int create_socket(char *influx_ip, uint32_t influx_port) {
 }
 
 /* check buffer space */
+// void ic_check(long addings, InfluxData *data)
 void ic_check(long adding) {
     /* first time create the buffer */
+    // if (data->output == (char *)0)
     if (output == (char *)0) {
+        // if ((data->output = (char *)realloc(data->output, data->output_size + MEGABYTE))
         if ((output = (char *)realloc(output, output_size + MEGABYTE)) ==
             (char *)-1) {
-            error("failed to realloc() output buffer");
+            error("failed to realloc() InfluxData->output buffer");
         }
     }
 }
 
 void remove_ending_comma_if_any() {
+    // if (data->output[data->output_char -1] == ',')
     if (output[output_char - 1] == ',') {
         /* remove the char */
+        // data->output[data->output_char - 1] = 0;
         output[output_char - 1] = 0;
+        // decrement output character
+        // data->output_char--
         output_char--;
     }
 }
@@ -226,11 +225,13 @@ void remove_ending_comma_if_any() {
 void ic_measure(char *section, InfluxInfo *info) {
     ic_check(strlen(section) + strlen(info->influx_tags) + 3);
 
-    output_char +=
-        sprintf(&output[output_char], "%s,%s ", section, info->influx_tags);
+    // data->output_char += sprintf(&data->output[data->output_char], "%s,%s ", section, info->influx_tags);
+    output_char += sprintf(&output[output_char], "%s,%s ", section, info->influx_tags);
+    // strcpy(data->saved_section, section);
     strcpy(saved_section, section);
     first_sub = 1;
     subended = 0;
+    // fprintf(stderr, "ic_measure(\"%s\") count=%ld\n", section, data->output_char);
     fprintf(stderr, "ic_measure(\"%s\") count=%ld\n", section, output_char);
 }
 
@@ -238,6 +239,7 @@ void ic_measureend() {
     ic_check(4);
     remove_ending_comma_if_any();
     if (!subended) {
+        // data->output_char += sprintf(&data->output[data->output_char], "   \n");
         output_char += sprintf(&output[output_char], "   \n");
     }
     subended = 0;
@@ -250,14 +252,21 @@ void ic_measureend() {
 void ic_sub(char *resource, InfluxInfo *info) {
     int i;
 
+    // ic_check(strlen(data->saved_section) + strlen(info->influx_tags) + strlen(data->saved_sub) +
+    //         strlen(resource) + 9);
+
     ic_check(strlen(saved_section) + strlen(info->influx_tags) + strlen(saved_sub) +
              strlen(resource) + 9);
 
     /* remove previously added section */
     if (first_sub) {
+        // for (i = data->output_char - 1; i > 0; i--) {
         for (i = output_char - 1; i > 0; i--) {
+            // if (data->output[i] == '\n') {
             if (output[i] == '\n') {
+                // data->output[i + 1] = 0;
                 output[i + 1] = 0;
+                // data->output_char = i + 1;
                 output_char = i + 1;
                 break;
             }
@@ -266,23 +275,32 @@ void ic_sub(char *resource, InfluxInfo *info) {
     first_sub = 0;
 
     /* remove the trailing s */
+    // strcpy(data->saved_sub, data->saved_section);
     strcpy(saved_sub, saved_section);
+    // if (data->saved_sub[strlen(data->saved_sub) - 1] == 's')
     if (saved_sub[strlen(saved_sub) - 1] == 's') {
+        // data->saved_sub[strlen(data->saved_sub) - 1] = 0;
         saved_sub[strlen(saved_sub) - 1] = 0;
     }
+    // data->output_char += sprint(&data->output[data->output_char],
     output_char += sprintf(&output[output_char],
                            "%s,%s,%s_name=%s ",
+                           // data->saved_section,
                            saved_section,
                            info->influx_tags,
+                           // data->saved_sub,
                            saved_sub,
                            resource);
     subended = 0;
+
+    // fprintf(stderr, "ic_sub(\"%s\") count=%ld\n", resource, data->output_char);
     fprintf(stderr, "ic_sub(\"%s\") count=%ld\n", resource, output_char);
 }
 
 void ic_subend() {
     ic_check(4);
     remove_ending_comma_if_any();
+    // data->output_char += sprintf(&data->output[data->output_char], "   \n");
     output_char += sprintf(&output[output_char], "   \n");
     subended = 1;
     fprintf(stderr, "ic_subend()\n");
@@ -290,11 +308,13 @@ void ic_subend() {
 
 void ic_long(char *name, long long value) {
     ic_check(strlen(name) + 16 + 4);
+    // data->output_char += sprintf(&data->output[data->output_char], "%s=%lldi,", name, value);
     output_char += sprintf(&output[output_char], "%s=%lldi,", name, value);
     fprintf(stderr,
             "ic_long(\"%s\",%lld) count=%ld\n",
             name,
             value,
+            // data->output_char);
             output_char);
 }
 
@@ -303,11 +323,13 @@ void ic_double(char *name, double value) {
     if (isnan(value) || isinf(value)) { /* not-a-number or infinity */
         fprintf(stderr, "ic_double(%s,%.1f) - nan error\n", name, value);
     } else {
+        // data->output_char += sprintf(&data->output[data->output_char], "%s=%.3f,", name, value);
         output_char += sprintf(&output[output_char], "%s=%.3f,", name, value);
         fprintf(stderr,
                 "ic_double(\"%s\",%.1f) count=%ld\n",
                 name,
                 value,
+                // data->output_char);
                 output_char);
     }
 }
@@ -322,14 +344,17 @@ void ic_string(char *name, char *value) {
     for (i = 0; i < len; i++)
         if (value[i] == '\n' || iscntrl(value[i]))
             value[i] = ' ';
+    // data->output_char += sprintf(&data->output[data->output_char], "%s=\"%s\",", name, value);
     output_char += sprintf(&output[output_char], "%s=\"%s\",", name, value);
     fprintf(stderr,
             "ic_string(\"%s\",\"%s\") count=%ld\n",
             name,
             value,
+            // data->output_char);
             output_char);
 }
 
+// void ic_push(InfluxInfo *info, InfluxData *data) {
 void ic_push(InfluxInfo *info) {
     char header[1024];
     char result[1024];
@@ -346,6 +371,7 @@ void ic_push(InfluxInfo *info) {
     }
 
     if (info->influx_port) {
+        // fprintf(stderr, "ic_push() size=%ld\n", data->output_char);
         fprintf(stderr, "ic_push() size=%ld\n", output_char);
         if (create_socket(info->influx_hostname, info->influx_port) == 1) {
 
@@ -358,22 +384,28 @@ void ic_push(InfluxInfo *info) {
                     info->influx_hostname,
                     info->influx_port,
                     output_char);
+                    //data->output_char);
+            
             fprintf(stderr,
                     "buffer size=%ld\nbuffer=<%s>\n",
                     strlen(buffer),
                     buffer);
+
             if ((ret = write(sockfd, buffer, strlen(buffer))) != strlen(buffer)) {
                 fprintf(stderr,
                         "warning: \"write post to sockfd failed.\" errno=%d\n",
                         errno);
             }
 
+            // total = data->output_char
             total = output_char;
             sent = 0;
 
+            //fprintf(stderr, "output size=%d output=\n<%s>\n", total, data->output);
             fprintf(stderr, "output size=%d output=\n<%s>\n", total, output);
 
             while (sent < total) {
+                // ret = write(sockfd, &data->output[sent], total - sent]);
                 ret = write(sockfd, &output[sent], total - sent);
                 fprintf(stderr,
                         "written=%d bytes sent=%d total=%d\n",
@@ -422,6 +454,8 @@ void ic_push(InfluxInfo *info) {
         error("influx port is not set, bailing out");
     }
 
+    // data->output[0] = 0;
+    // data->ouput_char = 0;
     output[0] = 0;
     output_char = 0;
 }

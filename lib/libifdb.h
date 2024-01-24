@@ -22,13 +22,13 @@ typedef struct InfluxInfo {
     char *influx_tags;
 } InfluxInfo;
 
-typedef struct InfluxOutput {
+typedef struct InfluxData {
     char *output;
-    long output_size;
-    long output_char;
+    uint32_t output_size;
+    uint32_t output_char;
     char saved_section[64];
     char saved_sub[64];
-} InfluxOutput;
+} InfluxData;
 
 //void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
 InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
