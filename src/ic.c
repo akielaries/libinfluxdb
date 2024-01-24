@@ -38,7 +38,7 @@ void error(char *buf) {
     exit(1);
 }
 
-/* ic_tags() argument is the measurement tags for influddb */
+/* ic_tags() argutment is the measurement tags for influddb */
 /* example: "host=vm1234"   note:the comma & hostname of the virtual machine
  * sending the data */
 /* complex: "host=lpar42,serialnum=987654,arch=power9" note:the comma separated
@@ -222,6 +222,7 @@ void remove_ending_comma_if_any() {
 }
 
 // this seems to create a populate an Influx database table
+// void ic_measure(char *table, InfluxInfo *info, InfluxData *data) {
 void ic_measure(char *section, InfluxInfo *info) {
     ic_check(strlen(section) + strlen(info->influx_tags) + 3);
 
@@ -455,7 +456,7 @@ void ic_push(InfluxInfo *info) {
     }
 
     // data->output[0] = 0;
-    // data->ouput_char = 0;
+    // data->output_char = 0;
     output[0] = 0;
     output_char = 0;
 }
