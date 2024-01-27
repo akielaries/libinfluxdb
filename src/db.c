@@ -34,6 +34,7 @@ void error(char *buf) {
             errno,
             strerror(errno));
     close(sockfd);
+    // TODO free memory here too
     sleep(2); /* this can help the socket close cleanly at the remote end */
     exit(1);
 }
@@ -165,6 +166,7 @@ InfluxInfo* ifdb_init(char *host, uint32_t port, char *db,
     return info;
 }
 
+
 int create_socket(char *influx_ip, uint32_t influx_port) {
     int i;
     static char buffer[4096];
@@ -196,14 +198,15 @@ int create_socket(char *influx_ip, uint32_t influx_port) {
 }
 
 /* check buffer space */
-// void ic_check(long addings, InfluxData *data)
+//void ic_check(InfluxData *data, long addings) {
 void ic_check(long adding) {
     /* first time create the buffer */
-    // if (data->output == (char *)0)
+    //if (data->output == (char *)0)
     if (output == (char *)0) {
         // if ((data->output = (char *)realloc(data->output, data->output_size + MEGABYTE))
-        if ((output = (char *)realloc(output, output_size + MEGABYTE)) ==
-            (char *)-1) {
+        //if ((data->output = (char *)realloc(data->output, data->output_size + MEGABYTE)) == NULL) {
+
+        if ((output = (char *)realloc(output, output_size + MEGABYTE)) == (char *)-1) {
             error("failed to realloc() InfluxData->output buffer");
         }
     }
@@ -440,11 +443,13 @@ void ic_push(InfluxInfo *info) {
                         code,
                         &result[13]);
 
-                if (code != 204)
+                if (code != 204) {
                     fprintf(stderr, "code %d -->%s<--\n", code, result);
+                }
             }
             close(sockfd);
             sockfd = 0;
+            printf("SENT : %s : \n\n", output);
             fprintf(stderr, "ic_push complete\n");
         } 
         else {
