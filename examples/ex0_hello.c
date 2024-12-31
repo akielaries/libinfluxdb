@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     char *database = "LIBIFDB_TEST";
     char *user     = "";
     char *pass     = "";
-    char *tags     = "host=friedicecream";  // TODO: make tags optional
+    char *tags     = "host=blueberryhaze";  // TODO: make tags optional
 
 
     // hostname, port, database. TODO, create database if it DNE

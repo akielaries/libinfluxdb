@@ -30,9 +30,24 @@ typedef struct InfluxData {
     char saved_sub[64];
 } InfluxData;
 
+/* Public API functions */
 //void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
+/**
+ * @brief initialize and connect to InfluxDB instance
+ *
+ * @param[in] host host name of the device influx is running on
+ * @param[in] port port number of the influx connection
+ * @param[in] db   database name
+ * @param[in] user username
+ * @param[in] pass password
+ * @param[in] tags database tags
+ *
+ * @return populated InfluxInfo pointer
+ */
 InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
                      char *user, char *pass, char *tags);
+
+int ifdb_close(InfluxInfo *info);
 
 void ic_influx_userpw(char *user, char *pw);
 
@@ -55,5 +70,7 @@ void ic_string(char *name, char *value);
 void ic_push(InfluxInfo *info);
 
 void ic_debug(int level);
+
+
 
 #endif

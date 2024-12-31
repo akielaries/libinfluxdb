@@ -3,13 +3,14 @@
 #include <sys/errno.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdio.h>
 
 
 int init_socket(char *influx_ip, uint32_t influx_port) {
     int i;
     static char buffer[4096];
     static struct sockaddr_in serv_addr;
-    int socket_fd = 0;
+    int sockfd = 0;
 
     fprintf(stderr,
             "socket: trying to connect to \"%s\":%ld\n",
@@ -17,7 +18,7 @@ int init_socket(char *influx_ip, uint32_t influx_port) {
             influx_port);
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        error("socket() call failed");
+        perror("socket() call failed");
         return 0;
     }
 
