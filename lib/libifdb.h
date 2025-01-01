@@ -1,78 +1,46 @@
-/*
- * Influx C (ic) client for data capture header file
- * Developer: Nigel Griffiths.
- * (C) Copyright 2021 Nigel Griffiths
- */
-#ifndef __LIBIFDB_H__
-#define __LIBIFDB_H__
+#ifndef LIBIFDB_H
+#define LIBIFDB_H
 
-#include "utils.h"
 #include <stdint.h>
 
-// main libinfluxdb macro
-#define __LIBIFDB__
+// Structure to hold InfluxDB connection information
+struct InfluxInfo {
+  char *hostname;
+  uint32_t port;
+  char *database;
+  char *user;
+  char *pass;
+  char *tags;
+  int socket_fd;
+};
 
-typedef struct InfluxInfo {
-  char *influx_hostname;
-  char *influx_ip;
-  uint32_t influx_port;
-  char *influx_database;
-  char *influx_username;
-  char *influx_password;
-  char *influx_tags;
-} InfluxInfo;
+// Structure to hold query result data
+typedef char **InfluxRow;
+typedef struct InfluxResult {
+  uint64_t num_rows;
+  uint64_t num_fields;
+  InfluxRow *rows;
+} InfluxResult;
 
-typedef struct InfluxData {
-  char *output;
-  uint32_t output_size;
-  uint32_t output_char;
-  char saved_section[64];
-  char saved_sub[64];
-} InfluxData;
+// Initializes connection to the InfluxDB instance and returns an InfluxInfo
+// struct
+struct InfluxInfo *ifdb_init(char *hostname,
+                             uint32_t port,
+                             char *database,
+                             char *user,
+                             char *pass,
+                             char *tags);
 
-/* Public API functions */
-// void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
-/**
- * @brief initialize and connect to InfluxDB instance
- *
- * @param[in] host host name of the device influx is running on
- * @param[in] port port number of the influx connection
- * @param[in] db   database name
- * @param[in] user username
- * @param[in] pass password
- * @param[in] tags database tags
- *
- * @return populated InfluxInfo pointer
- */
-InfluxInfo *ifdb_init(char *host,
-                      uint32_t port,
-                      char *db,
-                      char *user,
-                      char *pass,
-                      char *tags);
+// Executes an InfluxDB query and returns the result as an InfluxResult struct
+InfluxResult *ifdb_query(struct InfluxInfo *ifdb_info, const char *query, ...);
 
-int ifdb_close(InfluxInfo *info);
+// Fetches the next row from the query result
+InfluxRow ifdb_fetch_row(InfluxResult *result);
 
-void ic_influx_userpw(char *user, char *pw);
+// Returns the number of fields (columns) in the result set
+uint64_t ifdb_num_fields(InfluxResult *result);
 
-void ic_tags(char *tags, InfluxInfo *info);
+// Closes the connection to the InfluxDB instance
+void ifdb_close(struct InfluxInfo *ifdb_info);
 
-void ic_measure(char *section, InfluxInfo *info);
-
-void ic_measureend();
-
-void ic_sub(char *sub_name, InfluxInfo *info);
-
-void ic_subend();
-
-void ic_long(char *name, long long value);
-
-void ic_double(char *name, double value);
-
-void ic_string(char *name, char *value);
-
-void ic_push(InfluxInfo *info);
-
-void ic_debug(int level);
-
-#endif
+#endif // LIBIFDB_H
