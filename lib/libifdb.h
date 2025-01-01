@@ -13,25 +13,25 @@
 #define __LIBIFDB__
 
 typedef struct InfluxInfo {
-    char *influx_hostname;
-    char *influx_ip;
-    uint32_t influx_port;
-    char *influx_database;
-    char *influx_username;
-    char *influx_password;
-    char *influx_tags;
+  char *influx_hostname;
+  char *influx_ip;
+  uint32_t influx_port;
+  char *influx_database;
+  char *influx_username;
+  char *influx_password;
+  char *influx_tags;
 } InfluxInfo;
 
 typedef struct InfluxData {
-    char *output;
-    uint32_t output_size;
-    uint32_t output_char;
-    char saved_section[64];
-    char saved_sub[64];
+  char *output;
+  uint32_t output_size;
+  uint32_t output_char;
+  char saved_section[64];
+  char saved_sub[64];
 } InfluxData;
 
 /* Public API functions */
-//void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
+// void ifdb_init(char *host, long port, char *db, InfluxInfo *info);
 /**
  * @brief initialize and connect to InfluxDB instance
  *
@@ -44,8 +44,12 @@ typedef struct InfluxData {
  *
  * @return populated InfluxInfo pointer
  */
-InfluxInfo* ifdb_init(char *host, uint32_t port, char *db, 
-                     char *user, char *pass, char *tags);
+InfluxInfo *ifdb_init(char *host,
+                      uint32_t port,
+                      char *db,
+                      char *user,
+                      char *pass,
+                      char *tags);
 
 int ifdb_close(InfluxInfo *info);
 
@@ -70,7 +74,5 @@ void ic_string(char *name, char *value);
 void ic_push(InfluxInfo *info);
 
 void ic_debug(int level);
-
-
 
 #endif
