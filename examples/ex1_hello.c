@@ -21,25 +21,21 @@ int main(int argc, char **argv) {
     printf("Error initializing InfluxDB\n");
     return -1;
   }
-  printf("Initialized DB\n");
 
+  
   rc = ifdb_insert(ifdb_info, "measurement_a", 55.5594);
   if (rc != 0) {
     printf("[!] insert #1 failed with rc: %d\n", rc);
     return -1;
   }
-  //sleep(1);
-  printf("\nafter inserting 1 time\n");
   
   rc = ifdb_insert(ifdb_info, "measurement_a", 45.5598);
   if (rc != 0) {
     printf("[!] insert #2 failed with rc: %d\n", rc);
     return -1;
   }
-  //sleep(1);
-  printf("\nafter inserting 2 times\n");
 
-  char start_time[] = "1970-01-01T00:00:00Z"; // Start of Unix epoch
+  char start_time[] = "1970-01-01T00:00:00Z";
   char stop_time[]  = "2025-01-03T00:00:00Z";
 
   //ifdb_delete(ifdb_info, "measurement_a", start_time, stop_time);

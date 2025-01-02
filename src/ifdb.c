@@ -59,7 +59,7 @@ int send_http_request(int sockfd, const char *request) {
   size_t total_sent = 0;
   size_t request_len = strlen(request);
   
-  // Send the HTTP request
+  // send the HTTP request
   while (total_sent < request_len) {
     ssize_t sent = send(sockfd, request + total_sent, request_len - total_sent, 0);
     if (sent < 0) { 
@@ -69,7 +69,7 @@ int send_http_request(int sockfd, const char *request) {
     total_sent += sent;
   }
 
-  // Buffer to store the HTTP response
+  // buffer to store the HTTP response
   char response[MAX_BUF_SIZE] = {0};
   ssize_t received = recv(sockfd, response, sizeof(response) - 1, 0);
   if (received < 0) {
@@ -77,10 +77,10 @@ int send_http_request(int sockfd, const char *request) {
     return -1;
   }
 
-  // Print the received response
+  // print the received response
   printf("[+] Received response:\n%s\n", response);
 
-  // Check for HTTP 2xx status code to confirm success
+  // check for HTTP 2xx status code to confirm success
   if (strstr(response, "HTTP/1.1 2") == NULL) {
     fprintf(stderr, "Request failed with response: %s\n", response);
     return -1;
