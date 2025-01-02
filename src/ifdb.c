@@ -8,8 +8,9 @@
 #include <cjson/cJSON.h> // for JSON parsing
 
 
-#define MAX_BUF_SIZE 4096
+#define MAX_BUF_SIZE 8192 
 
+int receive_and_print_headers(int sockfd);
 
 // response buffer to store HTTP response data
 struct MemoryStruct {
@@ -54,17 +55,35 @@ int create_socket(char *hostname, uint32_t port) {
 // helper function to send an HTTP request
 int send_http_request(int sockfd, const char *request) {
   printf("[+] Sending request: %s\n\n", request);
-  size_t total_sent  = 0;
-  size_t request_len = strlen(request);
 
+  size_t total_sent = 0;
+  size_t request_len = strlen(request);
+  
+  // Send the HTTP request
   while (total_sent < request_len) {
-    ssize_t sent =
-      send(sockfd, request + total_sent, request_len - total_sent, 0);
-    if (sent < 0) {
+    ssize_t sent = send(sockfd, request + total_sent, request_len - total_sent, 0);
+    if (sent < 0) { 
       perror("Send failed");
       return -1;
     }
     total_sent += sent;
+  }
+
+  // Buffer to store the HTTP response
+  char response[MAX_BUF_SIZE] = {0};
+  ssize_t received = recv(sockfd, response, sizeof(response) - 1, 0);
+  if (received < 0) {
+    perror("Failed to receive response");
+    return -1;
+  }
+
+  // Print the received response
+  printf("[+] Received response:\n%s\n", response);
+
+  // Check for HTTP 2xx status code to confirm success
+  if (strstr(response, "HTTP/1.1 2") == NULL) {
+    fprintf(stderr, "Request failed with response: %s\n", response);
+    return -1;
   }
 
   return 0;
@@ -172,16 +191,14 @@ InfluxInfo *ifdb_init(char *token,
     return NULL;
   }
 
+/*
   // receive and print headers
   if (receive_and_print_headers(sockfd) < 0) {
     free(info);
     close(sockfd);
     return NULL;
   }
-
-  // close the socket after HEAD request
-  // close(sockfd);
-  // info->sockfd = -1; // indicate that the socket is closed
+*/
 
   printf("[+] HEAD request completed successfully\n");
 
@@ -196,7 +213,7 @@ int ifdb_insert(InfluxInfo *info, char *measurement, double value) {
   char url[MAX_BUF_SIZE];
   snprintf(url,
            sizeof(url),
-           "/api/v2/write?org=%s&bucket=%s&precision=s",
+           "/api/v2/write?org=%s&bucket=%s&precision=ms",
            info->organization,
            info->database);
 
@@ -315,7 +332,7 @@ InfluxResult *ifdb_query(InfluxInfo *ifdb_info, const char *query_format, ...) {
   char request[MAX_BUF_SIZE];
   snprintf(request,
            sizeof(request),
-           "POST /api/v2/query?org=%s&bucket=%s&precision=s HTTP/1.1\r\n"
+           "POST /api/v2/query?org=%s&bucket=%s&precision=ms HTTP/1.1\r\n"
            "Host: %s:%u\r\n"
            "Authorization: Token %s\r\n"
            "Content-Type: application/json\r\n"
