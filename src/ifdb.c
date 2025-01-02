@@ -239,14 +239,12 @@ int ifdb_delete(InfluxInfo *info,
          start_time,
          stop_time);
 
-  // construct the delete time range (adjust `start` and `stop` as needed).
-  // for example, delete everything from the start of time to now.
-
   // construct the predicate for filtering (optional, can match measurement).
   char predicate[MAX_BUF_SIZE];
   snprintf(predicate, sizeof(predicate), "_measurement=\"%s\"", measurement);
 
   // construct the JSON payload for the delete request.
+  // https://docs.influxdata.com/influxdb/v2/write-data/delete-data/#delete-data-using-the-api
   cJSON *payload_json = cJSON_CreateObject();
   cJSON_AddStringToObject(payload_json, "start", start_time);
   cJSON_AddStringToObject(payload_json, "stop", stop_time);
@@ -254,7 +252,7 @@ int ifdb_delete(InfluxInfo *info,
   char *payload = cJSON_PrintUnformatted(payload_json); // no pretty print
   cJSON_Delete(payload_json);                           // free the cJSON object
 
-  // construct the DELETE request URL.
+  // construct the DELETE request URL
   char url[MAX_BUF_SIZE];
   snprintf(url,
            sizeof(url),
@@ -262,7 +260,7 @@ int ifdb_delete(InfluxInfo *info,
            info->organization,
            info->database);
 
-  // construct the HTTP DELETE request.
+  // construct the HTTP DELETE request
   char post_request[MAX_BUF_SIZE];
   snprintf(post_request,
            sizeof(post_request),
@@ -279,14 +277,14 @@ int ifdb_delete(InfluxInfo *info,
            strlen(payload),
            payload);
 
-  // send the HTTP request.
+  // send the HTTP request
   if (send_http_request(info->sockfd, post_request) < 0) {
     perror("Failed to send HTTP request");
     free(payload); // free allocated payload
     return -1;
   }
 
-  // free the allocated payload.
+  // free the allocated payload
   free(payload);
 
   printf("[+] Delete request sent successfully\n");
@@ -295,6 +293,7 @@ int ifdb_delete(InfluxInfo *info,
 
 
 /*****************************************************************************/
+// custom query
 InfluxResult *ifdb_query(InfluxInfo *ifdb_info, const char *query_format, ...) {
   // allocate memory for InfluxResult (if you plan to extend this later)
   InfluxResult *result = malloc(sizeof(InfluxResult));

@@ -46,9 +46,31 @@ InfluxInfo *ifdb_init(char *token,
                       uint32_t port,
                       char *database);
 
+/**
+ * @brief insert a value into a measurement
+ *
+ * @note if the measurement does not exist, this function will create it
+ *
+ * @param[in] info        InfluxDB information pointer
+ * @param[in] measurement InfluxDB measurement name
+ * @param[in] value       measurement's corresponding value
+ *
+ * @return 0 on success, non-zero on failure
+ */
 int ifdb_insert(InfluxInfo *info, char *measurement, double value);
 
-
+/**
+ * @brief delete data from a measurement using a start and stop time
+ *
+ * @note this function can delete all data if the time interval is wide enough
+ *
+ * @param[in] info        InfluxDB information pointer
+ * @param[in] measurement InfluxDB measurement name
+ * @param[in] start_time  start time to start the deletion at
+ * @param[in] stop_time   stop time to stop the deletion at
+ *
+ * @return 0 on success, non-zero on failure
+ */
 int ifdb_delete(InfluxInfo *info,
                 const char *measurement,
                 const char *start_time,
