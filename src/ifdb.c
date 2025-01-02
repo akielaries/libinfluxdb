@@ -10,8 +10,6 @@
 
 #define MAX_BUF_SIZE 8192 
 
-int receive_and_print_headers(int sockfd);
-
 
 // helper function to create and connect the socket
 int create_socket(char *hostname, uint32_t port) {
@@ -83,57 +81,6 @@ int send_http_request(int sockfd, const char *request) {
   return 0;
 }
 
-// helper function to receive and print HTTP response headers
-int receive_and_print_headers(int sockfd) {
-  char buffer[MAX_BUF_SIZE];
-  int received;
-  int header_end     = 0;
-  int total_received = 0;
-
-  // initialize buffer
-  memset(buffer, 0, sizeof(buffer));
-
-  // read data until end of headers
-  while ((received = recv(sockfd,
-                          buffer + total_received,
-                          sizeof(buffer) - total_received - 1,
-                          0)) > 0) {
-    total_received += received;
-    buffer[total_received] = '\0';
-
-    // check if we've reached the end of headers
-    if (strstr(buffer, "\r\n\r\n") != NULL) {
-      header_end = 1;
-      break;
-    }
-
-    // prevent buffer overflow
-    if (total_received >= sizeof(buffer) - 1) {
-      break;
-    }
-  }
-
-  if (received < 0) {
-    perror("Receive failed");
-    return -1;
-  }
-
-  if (header_end) {
-    // print the headers
-    char *header_ptr = buffer;
-    char *body_ptr   = strstr(buffer, "\r\n\r\n");
-    if (body_ptr) {
-      *body_ptr = '\0'; // null-terminate the headers
-    }
-
-    printf("HTTP Response Headers:\n%s\n", header_ptr);
-  } else {
-    printf("No complete headers received.\n");
-  }
-
-  return 0;
-}
-
 // function to initialize the InfluxDB connection and perform a HEAD request
 InfluxInfo *ifdb_init(char *token,
                       char *hostname,
@@ -184,15 +131,6 @@ InfluxInfo *ifdb_init(char *token,
     close(sockfd);
     return NULL;
   }
-
-/*
-  // receive and print headers
-  if (receive_and_print_headers(sockfd) < 0) {
-    free(info);
-    close(sockfd);
-    return NULL;
-  }
-*/
 
   printf("[+] HEAD request completed successfully\n");
 
