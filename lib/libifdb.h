@@ -77,12 +77,33 @@ int ifdb_delete(InfluxInfo *info,
                 const char *stop_time);
 
 
+/**
+ * @brief perform a custom query
+ *
+ * @param[in] info          InfluxInfo pointer
+ * @param[in] query_format  the InfluxDB query as a string
+ * @param[in] ...           format parameters
+ *
+ * @return populated InfluxResult pointer
+ */
 InfluxResult *ifdb_query(InfluxInfo *ifdb_info, const char *query_format, ...);
 
-
+/**
+ * @brief print the database in tabular format
+ *
+ * @param[in] result InfluxResult pointer
+ *
+ * @return void
+ */
 void ifdb_show_db(InfluxResult *result);
 
-
+/**
+ * @brief close the database connection and free related memory
+ *
+ * @param[in] info InfluxInfo pointer
+ *
+ * @return void
+ */
 void ifdb_close(InfluxInfo *info);
 
 #endif // LIBIFDB_H
