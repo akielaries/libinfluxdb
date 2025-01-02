@@ -53,7 +53,7 @@ int create_socket(char *hostname, uint32_t port) {
 
 // helper function to send an HTTP request
 int send_http_request(int sockfd, const char *request) {
-  printf("\n[+] Sending request: %s\n\n", request);
+  printf("[+] Sending request: %s\n\n", request);
   size_t total_sent  = 0;
   size_t request_len = strlen(request);
 
@@ -127,6 +127,7 @@ InfluxInfo *ifdb_init(char *token,
                       char *organization,
                       uint32_t port,
                       char *database) {
+  printf("[+] Initializing InfluxDB connection\n");
   // create socket connection
   int sockfd = create_socket(hostname, port);
   if (sockfd < 0) {
@@ -160,7 +161,6 @@ InfluxInfo *ifdb_init(char *token,
            "User-Agent: custom-client/1.0\r\n"
            "Accept: */*\r\n"
            "Authorization: Token %s\r\n"
-           "Connection: open\r\n"
            "\r\n",
            hostname,
            port,
@@ -183,7 +183,7 @@ InfluxInfo *ifdb_init(char *token,
   // close(sockfd);
   // info->sockfd = -1; // indicate that the socket is closed
 
-  printf("[+] HEAD request completed successfully\n\n");
+  printf("[+] HEAD request completed successfully\n");
 
   return info;
 }
@@ -213,7 +213,6 @@ int ifdb_insert(InfluxInfo *info, char *measurement, double value) {
            "Authorization: Token %s\r\n"
            "Content-Type: text/plain\r\n"
            "Content-Length: %lu\r\n"
-           "Connection: open\r\n"
            "\r\n"
            "%s",
            url,
@@ -228,6 +227,69 @@ int ifdb_insert(InfluxInfo *info, char *measurement, double value) {
     return -1;
   }
 
+  return 0;
+}
+
+int ifdb_delete(InfluxInfo *info,
+                const char *measurement,
+                const char *start_time,
+                const char *stop_time) {
+  printf("[+] Deleting record from measurement %s between %s - %s\n",
+         measurement,
+         start_time,
+         stop_time);
+
+  // construct the delete time range (adjust `start` and `stop` as needed).
+  // for example, delete everything from the start of time to now.
+
+  // construct the predicate for filtering (optional, can match measurement).
+  char predicate[MAX_BUF_SIZE];
+  snprintf(predicate, sizeof(predicate), "_measurement=\"%s\"", measurement);
+
+  // construct the JSON payload for the delete request.
+  cJSON *payload_json = cJSON_CreateObject();
+  cJSON_AddStringToObject(payload_json, "start", start_time);
+  cJSON_AddStringToObject(payload_json, "stop", stop_time);
+  cJSON_AddStringToObject(payload_json, "predicate", predicate);
+  char *payload = cJSON_PrintUnformatted(payload_json); // no pretty print
+  cJSON_Delete(payload_json);                           // free the cJSON object
+
+  // construct the DELETE request URL.
+  char url[MAX_BUF_SIZE];
+  snprintf(url,
+           sizeof(url),
+           "/api/v2/delete?org=%s&bucket=%s",
+           info->organization,
+           info->database);
+
+  // construct the HTTP DELETE request.
+  char post_request[MAX_BUF_SIZE];
+  snprintf(post_request,
+           sizeof(post_request),
+           "POST %s HTTP/1.1\r\n"
+           "Host: %s\r\n"
+           "Authorization: Token %s\r\n"
+           "Content-Type: application/json\r\n"
+           "Content-Length: %lu\r\n"
+           "\r\n"
+           "%s",
+           url,
+           info->hostname,
+           info->token,
+           strlen(payload),
+           payload);
+
+  // send the HTTP request.
+  if (send_http_request(info->sockfd, post_request) < 0) {
+    perror("Failed to send HTTP request");
+    free(payload); // free allocated payload
+    return -1;
+  }
+
+  // free the allocated payload.
+  free(payload);
+
+  printf("[+] Delete request sent successfully\n");
   return 0;
 }
 

@@ -48,6 +48,13 @@ InfluxInfo *ifdb_init(char *token,
 
 int ifdb_insert(InfluxInfo *info, char *measurement, double value);
 
+
+int ifdb_delete(InfluxInfo *info,
+                const char *measurement,
+                const char *start_time,
+                const char *stop_time);
+
+
 InfluxResult *ifdb_query(InfluxInfo *ifdb_info, const char *query_format, ...);
 
 

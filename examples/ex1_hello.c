@@ -5,7 +5,8 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
-  // Define credentials and info
+  int rc = 0;
+  // define credentials and info
   char *hostname     = "192.168.86.53";
   uint32_t port      = 8086;
   char *database     = "test_bucket1";
@@ -21,8 +22,16 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  ifdb_insert(ifdb_info, "measurement_a", 45);
-  ifdb_insert(ifdb_info, "measurement_a", 45.5598);
+  /*
+    rc = ifdb_insert(ifdb_info, "measurement_a", 55.5594);
+    sleep(1);
+    rc = ifdb_insert(ifdb_info, "measurement_a", 45.5598);
+    sleep(1);
+  */
+  char start_time[] = "1970-01-01T00:00:00Z"; // Start of Unix epoch
+  char stop_time[]  = "2025-01-03T00:00:00Z";
+
+  ifdb_delete(ifdb_info, "measurement_a", start_time, stop_time);
 
   // close connection with the database/bucket
   ifdb_close(ifdb_info);
