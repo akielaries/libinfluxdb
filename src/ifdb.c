@@ -12,12 +12,6 @@
 
 int receive_and_print_headers(int sockfd);
 
-// response buffer to store HTTP response data
-struct MemoryStruct {
-  char *memory;
-  size_t size;
-};
-
 
 // helper function to create and connect the socket
 int create_socket(char *hostname, uint32_t port) {
