@@ -1,2 +1,0 @@
-/usr/bin/ar qc liblibinfluxdb.a CMakeFiles/libinfluxdb.dir/src/ifdb.c.o
-/usr/bin/ranlib liblibinfluxdb.a

@@ -1,7 +1,0 @@
-/home/akiel/libinfluxdb/build/CMakeFiles/libinfluxdb.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/edit_cache.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/rebuild_cache.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/list_install_components.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/install.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/install/local.dir
-/home/akiel/libinfluxdb/build/CMakeFiles/install/strip.dir
