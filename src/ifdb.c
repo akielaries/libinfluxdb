@@ -321,25 +321,14 @@ InfluxRow ifdb_fetch_row(InfluxResult *result) {
   return NULL;
 }
 
-void ifdb_show_db(InfluxResult *result) {
-  if (result == NULL) {
+void ifdb_show_db(InfluxInfo *info) {
+  if (info == NULL) {
     printf("[-] No data to display.\n");
     return;
   }
 
-  // print headers
-  for (uint64_t i = 0; i < result->field_count; i++) {
-    printf("Field %lu\t", i + 1);
-  }
-  printf("\n");
 
-  // print rows
-  for (uint64_t i = 0; i < result->row_count; i++) {
-    for (uint64_t j = 0; j < result->field_count; j++) {
-      printf("%s\t", result->rows[i][j] ? result->rows[i][j] : "NULL");
-    }
-    printf("\n");
-  }
+  return;
 }
 
 // function to close the InfluxDB connection

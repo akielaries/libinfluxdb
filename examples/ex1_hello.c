@@ -1,4 +1,5 @@
-#include "../lib/libifdb.h"
+//#include "../lib/libifdb.h"
+#include <libifdb.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,9 @@ int main(int argc, char **argv) {
   char stop_time[]  = "2025-01-03T00:00:00Z";
 
   //ifdb_delete(ifdb_info, "measurement_a", start_time, stop_time);
+
+  // print the database
+  ifdb_show_db(ifdb_info);
 
   // close connection with the database/bucket
   ifdb_close(ifdb_info);

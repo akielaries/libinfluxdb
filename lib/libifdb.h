@@ -95,7 +95,7 @@ InfluxResult *ifdb_query(InfluxInfo *ifdb_info, const char *query_format, ...);
  *
  * @return void
  */
-void ifdb_show_db(InfluxResult *result);
+void ifdb_show_db(InfluxInfo *info);
 
 /**
  * @brief close the database connection and free related memory
