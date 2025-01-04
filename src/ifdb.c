@@ -138,25 +138,21 @@ InfluxInfo *ifdb_init(char *token,
 }
 
 // insert data into a database/bucket
-int ifdb_insert(InfluxInfo *info, char *measurement, double value) {
-  printf("[+] Writing value %f to measurement %s\n", value, measurement);
+int ifdb_insert(InfluxInfo *info, char *measurement, const char *fields) {
+  printf("[+] Writing fields '%s' to measurement '%s'\n", fields, measurement);
 
-  // construct the write URL
+  // Construct the write URL
   char url[MAX_BUF_SIZE];
-  snprintf(url,
-           sizeof(url),
-           "/api/v2/write?org=%s&bucket=%s&precision=ms",
-           info->organization,
-           info->database);
+  snprintf(url, sizeof(url), "/api/v2/write?org=%s&bucket=%s&precision=ms",
+           info->organization, info->database);
 
-  // build the payload dynamically
+  // Construct payload
   char payload[MAX_BUF_SIZE];
-  snprintf(payload, sizeof(payload), "%s value=%f", measurement, value);
+  snprintf(payload, sizeof(payload), "%s %s", measurement, fields);
 
-  // build the POST request
+  // Build the POST request
   char post_request[MAX_BUF_SIZE];
-  snprintf(post_request,
-           sizeof(post_request),
+  snprintf(post_request, sizeof(post_request),
            "POST %s HTTP/1.1\r\n"
            "Host: %s\r\n"
            "Authorization: Token %s\r\n"
@@ -164,13 +160,9 @@ int ifdb_insert(InfluxInfo *info, char *measurement, double value) {
            "Content-Length: %lu\r\n"
            "\r\n"
            "%s",
-           url,
-           info->hostname,
-           info->token,
-           strlen(payload),
-           payload);
+           url, info->hostname, info->token, strlen(payload), payload);
 
-  // send the HTTP request
+  // Send the HTTP request
   if (send_http_request(info->sockfd, post_request) < 0) {
     perror("Failed to send HTTP request");
     return -1;

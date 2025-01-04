@@ -54,11 +54,12 @@ InfluxInfo *ifdb_init(char *token,
  * @param[in] info        InfluxDB information pointer
  * @param[in] measurement InfluxDB measurement name
  * @param[in] value       measurement's corresponding value
+ * @param[in] fields      char string of entries in influxDB's line protocol
+ * format (field1=1.1,field2=33.2145,field3=10, etc)
  *
  * @return 0 on success, non-zero on failure
  */
-int ifdb_insert(InfluxInfo *info, char *measurement, double value);
-
+int ifdb_insert(InfluxInfo *info, char *measurement, const char *fields); 
 /**
  * @brief delete data from a measurement using a start and stop time
  *

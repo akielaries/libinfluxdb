@@ -24,13 +24,13 @@ int main(int argc, char **argv) {
   }
 
   
-  rc = ifdb_insert(ifdb_info, "measurement_a", 55.5594);
+  rc = ifdb_insert(ifdb_info, "measurement_a", "val1=55.5594");
   if (rc != 0) {
     printf("[!] insert #1 failed with rc: %d\n", rc);
     return -1;
   }
   
-  rc = ifdb_insert(ifdb_info, "measurement_a", 45.5598);
+  rc = ifdb_insert(ifdb_info, "measurement_a", "val1=45.5598,val2=33.3334");
   if (rc != 0) {
     printf("[!] insert #2 failed with rc: %d\n", rc);
     return -1;
